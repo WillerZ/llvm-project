@@ -5779,6 +5779,7 @@ void RewriteModernObjC::HandleDeclInMainFile(Decl *D) {
       break;
     }
     case Decl::TypeAlias:
+    case Decl::RestrictTypedef:
     case Decl::Typedef: {
       if (TypedefNameDecl *TD = dyn_cast<TypedefNameDecl>(D)) {
         if (isTopLevelBlockPointerType(TD->getUnderlyingType()))

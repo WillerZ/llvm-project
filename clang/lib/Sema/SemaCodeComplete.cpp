@@ -4105,6 +4105,8 @@ CXCursorKind clang::getCursorKindForDecl(const Decl *D) {
     return CXCursor_ParmDecl;
   case Decl::Typedef:
     return CXCursor_TypedefDecl;
+  case Decl::RestrictTypedef:
+    return CXCursor_UnexposedDecl;
   case Decl::TypeAlias:
     return CXCursor_TypeAliasDecl;
   case Decl::TypeAliasTemplate:

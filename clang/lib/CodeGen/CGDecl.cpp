@@ -174,6 +174,7 @@ void CodeGenFunction::EmitDecl(const Decl &D) {
     return CGM.EmitOMPDeclareMapper(cast<OMPDeclareMapperDecl>(&D), this);
 
   case Decl::Typedef:      // typedef int X;
+  case Decl::RestrictTypedef: // restrict typedef int X; [Cphil]
   case Decl::TypeAlias: {  // using X = int; [C++0x]
     QualType Ty = cast<TypedefNameDecl>(D).getUnderlyingType();
     if (CGDebugInfo *DI = getDebugInfo())

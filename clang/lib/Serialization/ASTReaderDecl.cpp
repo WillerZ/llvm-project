@@ -340,6 +340,7 @@ namespace clang {
     void VisitTypeDecl(TypeDecl *TD);
     RedeclarableResult VisitTypedefNameDecl(TypedefNameDecl *TD);
     void VisitTypedefDecl(TypedefDecl *TD);
+    void VisitRestrictTypedefDecl(RestrictTypedefDecl *TD);
     void VisitTypeAliasDecl(TypeAliasDecl *TD);
     void VisitUnresolvedUsingTypenameDecl(UnresolvedUsingTypenameDecl *D);
     void VisitUnresolvedUsingIfExistsDecl(UnresolvedUsingIfExistsDecl *D);
@@ -739,6 +740,11 @@ ASTDeclReader::VisitTypedefNameDecl(TypedefNameDecl *TD) {
 }
 
 void ASTDeclReader::VisitTypedefDecl(TypedefDecl *TD) {
+  RedeclarableResult Redecl = VisitTypedefNameDecl(TD);
+  mergeRedeclarable(TD, Redecl);
+}
+
+void ASTDeclReader::VisitRestrictTypedefDecl(RestrictTypedefDecl *TD) {
   RedeclarableResult Redecl = VisitTypedefNameDecl(TD);
   mergeRedeclarable(TD, Redecl);
 }

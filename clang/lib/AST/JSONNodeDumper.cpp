@@ -841,6 +841,11 @@ void JSONNodeDumper::VisitTypedefDecl(const TypedefDecl *TD) {
   JOS.attribute("type", createQualType(TD->getUnderlyingType()));
 }
 
+void JSONNodeDumper::VisitRestrictTypedefDecl(const RestrictTypedefDecl *TD) {
+  VisitNamedDecl(TD);
+  JOS.attribute("type", createQualType(TD->getUnderlyingType()));
+}
+
 void JSONNodeDumper::VisitTypeAliasDecl(const TypeAliasDecl *TAD) {
   VisitNamedDecl(TAD);
   JOS.attribute("type", createQualType(TAD->getUnderlyingType()));

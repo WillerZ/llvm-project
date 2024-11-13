@@ -710,7 +710,7 @@ enum class TemplateSubstitutionKind : char {
         ArrayRef<TemplateArgument> Converted,
         VarTemplateSpecializationDecl *PrevDecl = nullptr);
 
-    Decl *InstantiateTypedefNameDecl(TypedefNameDecl *D, bool IsTypeAlias);
+    Decl *InstantiateTypedefNameDecl(TypedefNameDecl *D, bool IsTypeAlias, bool IsRestrict);
     ClassTemplatePartialSpecializationDecl *
     InstantiateClassTemplatePartialSpecialization(
                                               ClassTemplateDecl *ClassTemplate,

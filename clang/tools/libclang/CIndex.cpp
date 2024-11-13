@@ -721,6 +721,13 @@ bool CursorVisitor::VisitTypedefDecl(TypedefDecl *D) {
   return false;
 }
 
+bool CursorVisitor::VisitRestrictTypedefDecl(RestrictTypedefDecl *D) {
+  if (TypeSourceInfo *TSInfo = D->getTypeSourceInfo())
+    return Visit(TSInfo->getTypeLoc());
+
+  return false;
+}
+
 bool CursorVisitor::VisitTagDecl(TagDecl *D) { return VisitDeclContext(D); }
 
 bool CursorVisitor::VisitClassTemplateSpecializationDecl(
@@ -6824,6 +6831,7 @@ CXCursor clang_getCursorDefinition(CXCursor C) {
   // declaration and definition.
   case Decl::Namespace:
   case Decl::Typedef:
+  case Decl::RestrictTypedef:
   case Decl::TypeAlias:
   case Decl::TypeAliasTemplate:
   case Decl::TemplateTypeParm:

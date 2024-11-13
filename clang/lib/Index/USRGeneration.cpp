@@ -98,6 +98,7 @@ public:
   void VisitObjCPropertyImplDecl(const ObjCPropertyImplDecl *D);
   void VisitTagDecl(const TagDecl *D);
   void VisitTypedefDecl(const TypedefDecl *D);
+  void VisitRestrictTypedefDecl(const RestrictTypedefDecl *D);
   void VisitTemplateTypeParmDecl(const TemplateTypeParmDecl *D);
   void VisitVarDecl(const VarDecl *D);
   void VisitBindingDecl(const BindingDecl *D);
@@ -606,6 +607,16 @@ void USRGenerator::VisitTagDecl(const TagDecl *D) {
 }
 
 void USRGenerator::VisitTypedefDecl(const TypedefDecl *D) {
+  if (ShouldGenerateLocation(D) && GenLoc(D, /*IncludeOffset=*/isLocal(D)))
+    return;
+  const DeclContext *DC = D->getDeclContext();
+  if (const NamedDecl *DCN = dyn_cast<NamedDecl>(DC))
+    Visit(DCN);
+  Out << "@T@";
+  Out << D->getName();
+}
+
+void USRGenerator::VisitRestrictTypedefDecl(const RestrictTypedefDecl *D) {
   if (ShouldGenerateLocation(D) && GenLoc(D, /*IncludeOffset=*/isLocal(D)))
     return;
   const DeclContext *DC = D->getDeclContext();

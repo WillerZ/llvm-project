@@ -243,6 +243,7 @@ public:
 
   void VisitNamedDecl(const NamedDecl *ND);
   void VisitTypedefDecl(const TypedefDecl *TD);
+  void VisitRestrictTypedefDecl(const RestrictTypedefDecl *TD);
   void VisitTypeAliasDecl(const TypeAliasDecl *TAD);
   void VisitNamespaceDecl(const NamespaceDecl *ND);
   void VisitUsingDirectiveDecl(const UsingDirectiveDecl *UDD);

@@ -419,6 +419,7 @@ public:
   // DependentTemplateSpecializationType, ObjCObjectType
 
   void VisitTypedefDecl(const TypedefDecl *D) { Visit(D->getUnderlyingType()); }
+  void VisitRestrictTypedefDecl(const RestrictTypedefDecl *D) { Visit(D->getUnderlyingType()); }
 
   void VisitEnumConstantDecl(const EnumConstantDecl *D) {
     if (const Expr *Init = D->getInitExpr())

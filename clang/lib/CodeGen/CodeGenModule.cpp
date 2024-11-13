@@ -6994,6 +6994,7 @@ void CodeGenModule::EmitTopLevelDecl(Decl *D) {
     break;
 
   case Decl::Typedef:
+  case Decl::RestrictTypedef:
   case Decl::TypeAlias: // using foo = bar; [C++11]
     if (CGDebugInfo *DI = getModuleDebugInfo())
       DI->EmitAndRetainType(

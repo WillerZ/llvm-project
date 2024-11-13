@@ -331,6 +331,7 @@ void DeclInfo::fill() {
     break;
   case Decl::TypeAlias:
   case Decl::Typedef:
+  case Decl::RestrictTypedef: // restrict typedef int X; [Cphil]
     Kind = TypedefKind;
     TSI = cast<TypedefNameDecl>(CommentDecl)->getTypeSourceInfo();
     break;

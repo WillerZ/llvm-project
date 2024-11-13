@@ -72,6 +72,7 @@ namespace {
 
     void VisitTranslationUnitDecl(TranslationUnitDecl *D);
     void VisitTypedefDecl(TypedefDecl *D);
+    void VisitRestrictTypedefDecl(RestrictTypedefDecl *D);
     void VisitTypeAliasDecl(TypeAliasDecl *D);
     void VisitEnumDecl(EnumDecl *D);
     void VisitRecordDecl(RecordDecl *D);
@@ -596,6 +597,18 @@ void DeclPrinter::VisitTranslationUnitDecl(TranslationUnitDecl *D) {
 void DeclPrinter::VisitTypedefDecl(TypedefDecl *D) {
   if (!Policy.SuppressSpecifiers) {
     Out << "typedef ";
+
+    if (D->isModulePrivate())
+      Out << "__module_private__ ";
+  }
+  QualType Ty = D->getTypeSourceInfo()->getType();
+  Ty.print(Out, Policy, D->getName(), Indentation);
+  prettyPrintAttributes(D);
+}
+
+void DeclPrinter::VisitRestrictTypedefDecl(RestrictTypedefDecl *D) {
+  if (!Policy.SuppressSpecifiers) {
+    Out << "restrict typedef ";
 
     if (D->isModulePrivate())
       Out << "__module_private__ ";

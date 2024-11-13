@@ -1921,6 +1921,13 @@ DEF_TRAVERSE_DECL(TypedefDecl, {
   // source.
 })
 
+DEF_TRAVERSE_DECL(RestrictTypedefDecl, {
+  TRY_TO(TraverseTypeLoc(D->getTypeSourceInfo()->getTypeLoc()));
+  // We shouldn't traverse D->getTypeForDecl(); it's a result of
+  // declaring the typedef, not something that was written in the
+  // source.
+})
+
 DEF_TRAVERSE_DECL(TypeAliasDecl, {
   TRY_TO(TraverseTypeLoc(D->getTypeSourceInfo()->getTypeLoc()));
   // We shouldn't traverse D->getTypeForDecl(); it's a result of

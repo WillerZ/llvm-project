@@ -609,6 +609,8 @@ ODRDiagsEmitter::FindTypeDiffs(DeclHashes &FirstHashes,
       return TypeAlias;
     case Decl::Typedef:
       return TypeDef;
+    case Decl::RestrictTypedef:
+      return RestrictTypeDef;
     case Decl::Var:
       return Var;
     case Decl::Friend:
@@ -1263,6 +1265,7 @@ bool ODRDiagsEmitter::diagnoseMismatch(
   }
 
   case TypeAlias:
+  case RestrictTypeDef:
   case TypeDef: {
     if (diagnoseSubMismatchTypedef(FirstRecord, FirstModule, SecondModule,
                                    cast<TypedefNameDecl>(FirstDecl),
@@ -1625,6 +1628,7 @@ bool ODRDiagsEmitter::diagnoseMismatch(const RecordDecl *FirstRecord,
       return true;
     break;
   }
+  case RestrictTypeDef:
   case TypeDef: {
     if (diagnoseSubMismatchTypedef(FirstRecord, FirstModule, SecondModule,
                                    cast<TypedefNameDecl>(FirstDecl),
@@ -2043,6 +2047,7 @@ bool ODRDiagsEmitter::diagnoseMismatch(
   case Other:
   // Cannot be contained by ObjCInterfaceDecl, invalid in this context.
   case Field:
+  case RestrictTypeDef:
   case TypeDef:
   case Var:
   // C++ only, invalid in this context.
@@ -2171,6 +2176,7 @@ bool ODRDiagsEmitter::diagnoseMismatch(
   case Other:
   // Cannot be contained by ObjCProtocolDecl, invalid in this context.
   case Field:
+  case RestrictTypeDef:
   case TypeDef:
   case Var:
   case ObjCIvar:

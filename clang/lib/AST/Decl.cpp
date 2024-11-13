@@ -1483,6 +1483,7 @@ LinkageInfo LinkageComputer::computeLVForDecl(const NamedDecl *D,
       return LinkageInfo::visible_none();
 
     case Decl::Typedef:
+    case Decl::RestrictTypedef: // restrict typedef int X; [Cphil]
     case Decl::TypeAlias:
       // A typedef declaration has linkage if it gives a type a name for
       // linkage purposes.
@@ -5436,6 +5437,12 @@ TypedefDecl *TypedefDecl::Create(ASTContext &C, DeclContext *DC,
   return new (C, DC) TypedefDecl(C, DC, StartLoc, IdLoc, Id, TInfo);
 }
 
+RestrictTypedefDecl *RestrictTypedefDecl::Create(ASTContext &C, DeclContext *DC,
+                                 SourceLocation StartLoc, SourceLocation IdLoc,
+                                 IdentifierInfo *Id, TypeSourceInfo *TInfo) {
+  return new (C, DC) RestrictTypedefDecl(C, DC, StartLoc, IdLoc, Id, TInfo);
+}
+
 void TypedefNameDecl::anchor() {}
 
 TagDecl *TypedefNameDecl::getAnonDeclWithTypedefName(bool AnyRedecl) const {
@@ -5480,6 +5487,11 @@ TypedefDecl *TypedefDecl::CreateDeserialized(ASTContext &C, unsigned ID) {
                                  nullptr, nullptr);
 }
 
+RestrictTypedefDecl *RestrictTypedefDecl::CreateDeserialized(ASTContext &C, unsigned ID) {
+  return new (C, ID) RestrictTypedefDecl(C, nullptr, SourceLocation(), SourceLocation(),
+                                 nullptr, nullptr);
+}
+
 TypeAliasDecl *TypeAliasDecl::Create(ASTContext &C, DeclContext *DC,
                                      SourceLocation StartLoc,
                                      SourceLocation IdLoc, IdentifierInfo *Id,
@@ -5493,6 +5505,15 @@ TypeAliasDecl *TypeAliasDecl::CreateDeserialized(ASTContext &C, unsigned ID) {
 }
 
 SourceRange TypedefDecl::getSourceRange() const {
+  SourceLocation RangeEnd = getLocation();
+  if (TypeSourceInfo *TInfo = getTypeSourceInfo()) {
+    if (typeIsPostfix(TInfo->getType()))
+      RangeEnd = TInfo->getTypeLoc().getSourceRange().getEnd();
+  }
+  return SourceRange(getBeginLoc(), RangeEnd);
+}
+
+SourceRange RestrictTypedefDecl::getSourceRange() const {
   SourceLocation RangeEnd = getLocation();
   if (TypeSourceInfo *TInfo = getTypeSourceInfo()) {
     if (typeIsPostfix(TInfo->getType()))

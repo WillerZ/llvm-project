@@ -470,8 +470,9 @@ namespace clang {
     ExpectedDecl VisitBindingDecl(BindingDecl *D);
     ExpectedDecl VisitNamespaceDecl(NamespaceDecl *D);
     ExpectedDecl VisitNamespaceAliasDecl(NamespaceAliasDecl *D);
-    ExpectedDecl VisitTypedefNameDecl(TypedefNameDecl *D, bool IsAlias);
+    ExpectedDecl VisitTypedefNameDecl(TypedefNameDecl *D, bool IsAlias, bool IsRestrict);
     ExpectedDecl VisitTypedefDecl(TypedefDecl *D);
+    ExpectedDecl VisitRestrictTypedefDecl(RestrictTypedefDecl *D);
     ExpectedDecl VisitTypeAliasDecl(TypeAliasDecl *D);
     ExpectedDecl VisitTypeAliasTemplateDecl(TypeAliasTemplateDecl *D);
     ExpectedDecl VisitLabelDecl(LabelDecl *D);
@@ -2639,7 +2640,7 @@ ExpectedDecl ASTNodeImporter::VisitNamespaceAliasDecl(NamespaceAliasDecl *D) {
 }
 
 ExpectedDecl
-ASTNodeImporter::VisitTypedefNameDecl(TypedefNameDecl *D, bool IsAlias) {
+ASTNodeImporter::VisitTypedefNameDecl(TypedefNameDecl *D, bool IsAlias, bool IsRestrict) {
   // Import the major distinguishing characteristics of this typedef.
   DeclarationName Name;
   SourceLocation Loc;
@@ -2726,15 +2727,23 @@ ASTNodeImporter::VisitTypedefNameDecl(TypedefNameDecl *D, bool IsAlias) {
   // FIXME: ToUnderlyingType is not used.
   (void)ToUnderlyingType;
   TypedefNameDecl *ToTypedef;
-  if (IsAlias) {
-    if (GetImportedOrCreateDecl<TypeAliasDecl>(
+  if (IsRestrict) {
+    assert(!IsAlias);
+    if (GetImportedOrCreateDecl<RestrictTypedefDecl>(
         ToTypedef, D, Importer.getToContext(), DC, ToBeginLoc, Loc,
         Name.getAsIdentifierInfo(), ToTypeSourceInfo))
       return ToTypedef;
-  } else if (GetImportedOrCreateDecl<TypedefDecl>(
-      ToTypedef, D, Importer.getToContext(), DC, ToBeginLoc, Loc,
-      Name.getAsIdentifierInfo(), ToTypeSourceInfo))
-    return ToTypedef;
+  } else {
+    if (IsAlias) {
+      if (GetImportedOrCreateDecl<TypeAliasDecl>(
+          ToTypedef, D, Importer.getToContext(), DC, ToBeginLoc, Loc,
+          Name.getAsIdentifierInfo(), ToTypeSourceInfo))
+        return ToTypedef;
+    } else if (GetImportedOrCreateDecl<TypedefDecl>(
+        ToTypedef, D, Importer.getToContext(), DC, ToBeginLoc, Loc,
+        Name.getAsIdentifierInfo(), ToTypeSourceInfo))
+      return ToTypedef;
+  }
 
   // Import the DeclContext and set it to the Typedef.
   if ((Err = ImportDeclContext(D, DC, LexicalDC)))
@@ -2755,11 +2764,15 @@ ASTNodeImporter::VisitTypedefNameDecl(TypedefNameDecl *D, bool IsAlias) {
 }
 
 ExpectedDecl ASTNodeImporter::VisitTypedefDecl(TypedefDecl *D) {
-  return VisitTypedefNameDecl(D, /*IsAlias=*/false);
+  return VisitTypedefNameDecl(D, /*IsAlias=*/false, /*IsRestrict=*/false);
+}
+
+ExpectedDecl ASTNodeImporter::VisitRestrictTypedefDecl(RestrictTypedefDecl *D) {
+  return VisitTypedefNameDecl(D, /*IsAlias=*/false, /*IsRestrict=*/true);
 }
 
 ExpectedDecl ASTNodeImporter::VisitTypeAliasDecl(TypeAliasDecl *D) {
-  return VisitTypedefNameDecl(D, /*IsAlias=*/true);
+  return VisitTypedefNameDecl(D, /*IsAlias=*/true, /*IsRestrict=*/false);
 }
 
 ExpectedDecl

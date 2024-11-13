@@ -212,6 +212,7 @@ public:
   bool VisitDeclContext(DeclContext *DC);
   bool VisitTranslationUnitDecl(TranslationUnitDecl *D);
   bool VisitTypedefDecl(TypedefDecl *D);
+  bool VisitRestrictTypedefDecl(RestrictTypedefDecl *D);
   bool VisitTagDecl(TagDecl *D);
   bool VisitClassTemplateSpecializationDecl(ClassTemplateSpecializationDecl *D);
   bool VisitClassTemplatePartialSpecializationDecl(

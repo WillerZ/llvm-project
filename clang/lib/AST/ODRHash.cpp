@@ -442,6 +442,10 @@ public:
     Inherited::VisitTypedefDecl(D);
   }
 
+  void VisitRestrictTypedefDecl(const RestrictTypedefDecl *D) {
+    Inherited::VisitRestrictTypedefDecl(D);
+  }
+
   void VisitTypeAliasDecl(const TypeAliasDecl *D) {
     Inherited::VisitTypeAliasDecl(D);
   }
@@ -544,6 +548,7 @@ bool ODRHash::isSubDeclToBeProcessed(const Decl *D, const DeclContext *Parent) {
     case Decl::StaticAssert:
     case Decl::TypeAlias:
     case Decl::Typedef:
+    case Decl::RestrictTypedef:
     case Decl::Var:
     case Decl::ObjCMethod:
     case Decl::ObjCIvar:

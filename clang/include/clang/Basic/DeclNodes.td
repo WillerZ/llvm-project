@@ -22,6 +22,7 @@ def Named : DeclNode<Decl, "named declarations", 1>;
   def Type : DeclNode<Named, "types", 1>;
     def TypedefName : DeclNode<Type, "typedefs", 1>;
       def Typedef : DeclNode<TypedefName>;
+      def RestrictTypedef : DeclNode<TypedefName>;
       def TypeAlias : DeclNode<TypedefName>;
       def ObjCTypeParam : DeclNode<TypedefName>;
     def UnresolvedUsingTypename : DeclNode<Type>;

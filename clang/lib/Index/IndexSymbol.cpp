@@ -172,6 +172,7 @@ SymbolInfo index::getSymbolInfo(const Decl *D) {
       Info.Kind = SymbolKind::Module;
       break;
     case Decl::Typedef:
+    case Decl::RestrictTypedef:
       Info.Kind = SymbolKind::TypeAlias; break; // Lang = C
     case Decl::Function:
       Info.Kind = SymbolKind::Function;

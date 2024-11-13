@@ -1910,6 +1910,7 @@ static bool CheckConstexprDeclStmt(Sema &SemaRef, const FunctionDecl *Dcl,
       continue;
 
     case Decl::Typedef:
+    case Decl::RestrictTypedef:
     case Decl::TypeAlias: {
       //   - typedef declarations and alias-declarations that do not define
       //     classes or enumerations,

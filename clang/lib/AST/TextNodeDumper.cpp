@@ -1827,6 +1827,13 @@ void TextNodeDumper::VisitTypedefDecl(const TypedefDecl *D) {
     OS << " __module_private__";
 }
 
+void TextNodeDumper::VisitRestrictTypedefDecl(const RestrictTypedefDecl *D) {
+  dumpName(D);
+  dumpType(D->getUnderlyingType());
+  if (D->isModulePrivate())
+    OS << " __module_private__";
+}
+
 void TextNodeDumper::VisitEnumDecl(const EnumDecl *D) {
   if (D->isScoped()) {
     if (D->isScopedUsingClassTag())

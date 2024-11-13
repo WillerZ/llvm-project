@@ -67,6 +67,7 @@ namespace clang {
     void VisitTypeDecl(TypeDecl *D);
     void VisitTypedefNameDecl(TypedefNameDecl *D);
     void VisitTypedefDecl(TypedefDecl *D);
+    void VisitRestrictTypedefDecl(RestrictTypedefDecl *D);
     void VisitTypeAliasDecl(TypeAliasDecl *D);
     void VisitUnresolvedUsingTypenameDecl(UnresolvedUsingTypenameDecl *D);
     void VisitUnresolvedUsingIfExistsDecl(UnresolvedUsingIfExistsDecl *D);
@@ -423,6 +424,22 @@ void ASTDeclWriter::VisitTypedefNameDecl(TypedefNameDecl *D) {
 }
 
 void ASTDeclWriter::VisitTypedefDecl(TypedefDecl *D) {
+  VisitTypedefNameDecl(D);
+  if (D->getDeclContext() == D->getLexicalDeclContext() &&
+      !D->hasAttrs() &&
+      !D->isImplicit() &&
+      D->getFirstDecl() == D->getMostRecentDecl() &&
+      !D->isInvalidDecl() &&
+      !D->isTopLevelDeclInObjCContainer() &&
+      !D->isModulePrivate() &&
+      !needsAnonymousDeclarationNumber(D) &&
+      D->getDeclName().getNameKind() == DeclarationName::Identifier)
+    AbbrevToUse = Writer.getDeclTypedefAbbrev();
+
+  Code = serialization::DECL_TYPEDEF;
+}
+
+void ASTDeclWriter::VisitRestrictTypedefDecl(RestrictTypedefDecl *D) {
   VisitTypedefNameDecl(D);
   if (D->getDeclContext() == D->getLexicalDeclContext() &&
       !D->hasAttrs() &&

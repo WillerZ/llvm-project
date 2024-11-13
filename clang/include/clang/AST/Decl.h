@@ -3508,6 +3508,26 @@ public:
   static bool classofKind(Kind K) { return K == Typedef; }
 };
 
+/// Represents the declaration of a typedef-name via the 'restrict typedef'
+/// type specifier.
+class RestrictTypedefDecl : public TypedefNameDecl {
+  RestrictTypedefDecl(ASTContext &C, DeclContext *DC, SourceLocation StartLoc,
+              SourceLocation IdLoc, IdentifierInfo *Id, TypeSourceInfo *TInfo)
+      : TypedefNameDecl(Typedef, C, DC, StartLoc, IdLoc, Id, TInfo) {}
+
+public:
+  static RestrictTypedefDecl *Create(ASTContext &C, DeclContext *DC,
+                             SourceLocation StartLoc, SourceLocation IdLoc,
+                             IdentifierInfo *Id, TypeSourceInfo *TInfo);
+  static RestrictTypedefDecl *CreateDeserialized(ASTContext &C, unsigned ID);
+
+  SourceRange getSourceRange() const override LLVM_READONLY;
+
+  // Implement isa/cast/dyncast/etc.
+  static bool classof(const Decl *D) { return classofKind(D->getKind()); }
+  static bool classofKind(Kind K) { return K == RestrictTypedef; }
+};
+
 /// Represents the declaration of a typedef-name via a C++11
 /// alias-declaration.
 class TypeAliasDecl : public TypedefNameDecl {

@@ -109,6 +109,7 @@ private:
     CXXMethod,
     TypeAlias,
     TypeDef,
+    RestrictTypeDef,
     Var,
     Friend,
     FunctionTemplate,

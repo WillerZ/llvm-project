@@ -978,7 +978,8 @@ TemplateDeclInstantiator::VisitNamespaceAliasDecl(NamespaceAliasDecl *D) {
 }
 
 Decl *TemplateDeclInstantiator::InstantiateTypedefNameDecl(TypedefNameDecl *D,
-                                                           bool IsTypeAlias) {
+                                                           bool IsTypeAlias,
+                                                           bool IsRestrict) {
   bool Invalid = false;
   TypeSourceInfo *DI = D->getTypeSourceInfo();
   if (DI->getType()->isInstantiationDependentType() ||
@@ -1012,12 +1013,18 @@ Decl *TemplateDeclInstantiator::InstantiateTypedefNameDecl(TypedefNameDecl *D,
 
   // Create the new typedef
   TypedefNameDecl *Typedef;
-  if (IsTypeAlias)
-    Typedef = TypeAliasDecl::Create(SemaRef.Context, Owner, D->getBeginLoc(),
+  if (IsRestrict) {
+    assert(!IsTypeAlias);
+    Typedef = RestrictTypedefDecl::Create(SemaRef.Context, Owner, D->getBeginLoc(),
+                                          D->getLocation(), D->getIdentifier(), DI);
+  } else {
+    if (IsTypeAlias)
+      Typedef = TypeAliasDecl::Create(SemaRef.Context, Owner, D->getBeginLoc(),
+                                      D->getLocation(), D->getIdentifier(), DI);
+    else
+      Typedef = TypedefDecl::Create(SemaRef.Context, Owner, D->getBeginLoc(),
                                     D->getLocation(), D->getIdentifier(), DI);
-  else
-    Typedef = TypedefDecl::Create(SemaRef.Context, Owner, D->getBeginLoc(),
-                                  D->getLocation(), D->getIdentifier(), DI);
+  }
   if (Invalid)
     Typedef->setInvalidDecl();
 
@@ -1058,14 +1065,21 @@ Decl *TemplateDeclInstantiator::InstantiateTypedefNameDecl(TypedefNameDecl *D,
 }
 
 Decl *TemplateDeclInstantiator::VisitTypedefDecl(TypedefDecl *D) {
-  Decl *Typedef = InstantiateTypedefNameDecl(D, /*IsTypeAlias=*/false);
+  Decl *Typedef = InstantiateTypedefNameDecl(D, /*IsTypeAlias=*/false, /*IsRestrict=*/false);
+  if (Typedef)
+    Owner->addDecl(Typedef);
+  return Typedef;
+}
+
+Decl *TemplateDeclInstantiator::VisitRestrictTypedefDecl(RestrictTypedefDecl *D) {
+  Decl *Typedef = InstantiateTypedefNameDecl(D, /*IsTypeAlias=*/false, /*IsRestrict=*/true);
   if (Typedef)
     Owner->addDecl(Typedef);
   return Typedef;
 }
 
 Decl *TemplateDeclInstantiator::VisitTypeAliasDecl(TypeAliasDecl *D) {
-  Decl *Typedef = InstantiateTypedefNameDecl(D, /*IsTypeAlias=*/true);
+  Decl *Typedef = InstantiateTypedefNameDecl(D, /*IsTypeAlias=*/true, /*IsRestrict=*/false);
   if (Typedef)
     Owner->addDecl(Typedef);
   return Typedef;
@@ -1093,7 +1107,7 @@ TemplateDeclInstantiator::VisitTypeAliasTemplateDecl(TypeAliasTemplateDecl *D) {
   }
 
   TypeAliasDecl *AliasInst = cast_or_null<TypeAliasDecl>(
-    InstantiateTypedefNameDecl(Pattern, /*IsTypeAlias=*/true));
+    InstantiateTypedefNameDecl(Pattern, /*IsTypeAlias=*/true, /*IsRestrict=*/false));
   if (!AliasInst)
     return nullptr;
 

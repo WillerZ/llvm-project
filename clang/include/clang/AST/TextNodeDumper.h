@@ -339,6 +339,7 @@ public:
 
   void VisitLabelDecl(const LabelDecl *D);
   void VisitTypedefDecl(const TypedefDecl *D);
+  void VisitRestrictTypedefDecl(const RestrictTypedefDecl *D);
   void VisitEnumDecl(const EnumDecl *D);
   void VisitRecordDecl(const RecordDecl *D);
   void VisitEnumConstantDecl(const EnumConstantDecl *D);
