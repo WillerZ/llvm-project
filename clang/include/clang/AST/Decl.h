@@ -3513,7 +3513,7 @@ public:
 class RestrictTypedefDecl : public TypedefNameDecl {
   RestrictTypedefDecl(ASTContext &C, DeclContext *DC, SourceLocation StartLoc,
               SourceLocation IdLoc, IdentifierInfo *Id, TypeSourceInfo *TInfo)
-      : TypedefNameDecl(Typedef, C, DC, StartLoc, IdLoc, Id, TInfo) {}
+      : TypedefNameDecl(RestrictTypedef, C, DC, StartLoc, IdLoc, Id, TInfo) {}
 
 public:
   static RestrictTypedefDecl *Create(ASTContext &C, DeclContext *DC,

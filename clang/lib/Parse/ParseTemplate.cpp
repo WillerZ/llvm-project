@@ -320,7 +320,8 @@ Decl *Parser::ParseSingleDeclarationAfterTemplate(
       return nullptr;
     }
 
-    if (DS.getStorageClassSpec() == DeclSpec::SCS_typedef) {
+    if ((DS.getStorageClassSpec() == DeclSpec::SCS_typedef) ||
+        (DS.getStorageClassSpec() == DeclSpec::SCS_restrict_typedef)) {
       // Recover by ignoring the 'typedef'. This was probably supposed to be
       // the 'typename' keyword, which we should have already suggested adding
       // if it's appropriate.

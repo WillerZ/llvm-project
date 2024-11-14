@@ -974,6 +974,17 @@ Parser::ParseExternalDeclaration(ParsedAttributes &Attrs,
     // This must be 'export template'. Parse it so we can diagnose our lack
     // of support.
     [[fallthrough]];
+  case tok::kw_restrict: // [Cphil]
+    // Deal with the export fallthrough above:
+    if (Tok.getKind() == tok::kw_restrict) {
+      auto const& nt = NextToken();
+      if (!nt.is(tok::kw_typedef)) { 
+        llvm::outs() << "#1 restrict must be followed by typedef not " << nt.getKind() << "\n";
+        goto dont_know;
+      }
+      llvm::outs() << "#4 typedef restrict\n";
+    }
+    [[fallthrough]];
   case tok::kw_using:
   case tok::kw_namespace:
   case tok::kw_typedef:

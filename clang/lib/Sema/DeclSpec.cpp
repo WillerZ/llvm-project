@@ -499,6 +499,7 @@ const char *DeclSpec::getSpecifierName(DeclSpec::SCS S) {
   switch (S) {
   case DeclSpec::SCS_unspecified: return "unspecified";
   case DeclSpec::SCS_typedef:     return "typedef";
+  case DeclSpec::SCS_restrict_typedef: return "restrict typedef";
   case DeclSpec::SCS_extern:      return "extern";
   case DeclSpec::SCS_static:      return "static";
   case DeclSpec::SCS_auto:        return "auto";
@@ -688,7 +689,7 @@ bool DeclSpec::SetStorageClassSpec(Sema &S, SCS SC, SourceLocation Loc,
     if (isInvalid &&
         !(SCS_extern_in_linkage_spec &&
           StorageClassSpec == SCS_extern &&
-          SC == SCS_typedef))
+          ((SC == SCS_typedef) || (SC == SCS_restrict_typedef))))
       return BadSpecifier(SC, (SCS)StorageClassSpec, PrevSpec, DiagID);
   }
   StorageClassSpec = SC;
@@ -1464,7 +1465,8 @@ void DeclSpec::Finish(Sema &S, const PrintingPolicy &Policy) {
 bool DeclSpec::isMissingDeclaratorOk() {
   TST tst = getTypeSpecType();
   return isDeclRep(tst) && getRepAsDecl() != nullptr &&
-    StorageClassSpec != DeclSpec::SCS_typedef;
+    StorageClassSpec != DeclSpec::SCS_typedef &&
+    StorageClassSpec != DeclSpec::SCS_restrict_typedef;
 }
 
 void UnqualifiedId::setOperatorFunctionId(SourceLocation OperatorLoc,

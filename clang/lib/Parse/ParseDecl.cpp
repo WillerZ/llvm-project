@@ -2262,7 +2262,8 @@ Parser::DeclGroupPtrTy Parser::ParseDeclGroup(ParsingDeclSpec &DS,
       // need to handle the file scope definition case.
       if (Context == DeclaratorContext::File) {
         if (isStartOfFunctionDefinition(D)) {
-          if (DS.getStorageClassSpec() == DeclSpec::SCS_typedef) {
+          if ((DS.getStorageClassSpec() == DeclSpec::SCS_typedef) ||
+              (DS.getStorageClassSpec() == DeclSpec::SCS_restrict_typedef)) {
             Diag(Tok, diag::err_function_declared_typedef);
 
             // Recover by treating the 'typedef' as spurious.
@@ -3363,7 +3364,8 @@ void Parser::ParseDeclarationSpecifiers(
     // the class is used.  If we are currently parsing such a declaration, treat
     // the token as an identifier.
     if (getLangOpts().MSVCCompat && Tok.is(tok::kw__Atomic) &&
-        DS.getStorageClassSpec() == clang::DeclSpec::SCS_typedef &&
+        ((DS.getStorageClassSpec() == clang::DeclSpec::SCS_typedef) ||
+         (DS.getStorageClassSpec() == clang::DeclSpec::SCS_restrict_typedef)) &&
         !DS.hasTypeSpecifier() && GetLookAheadToken(1).is(tok::less))
       Tok.setKind(tok::identifier);
 
@@ -4008,8 +4010,10 @@ void Parser::ParseDeclarationSpecifiers(
 
     // storage-class-specifier
     case tok::kw_typedef:
-      isInvalid = DS.SetStorageClassSpec(Actions, DeclSpec::SCS_typedef, Loc,
-                                         PrevSpec, DiagID, Policy);
+      if (DS.getStorageClassSpec() != DeclSpec::SCS_restrict_typedef) {
+        isInvalid = DS.SetStorageClassSpec(Actions, DeclSpec::SCS_typedef, Loc,
+                                          PrevSpec, DiagID, Policy);
+      }
       isStorageClass = true;
       break;
     case tok::kw_extern:
@@ -4322,7 +4326,8 @@ void Parser::ParseDeclarationSpecifiers(
 
       if (Tok.is(tok::kw_bool) &&
           DS.getTypeSpecType() != DeclSpec::TST_unspecified &&
-          DS.getStorageClassSpec() == DeclSpec::SCS_typedef) {
+          ((DS.getStorageClassSpec() == DeclSpec::SCS_typedef) ||
+           (DS.getStorageClassSpec() == DeclSpec::SCS_restrict_typedef))) {
         PrevSpec = ""; // Not used by the diagnostic.
         DiagID = diag::err_bool_redeclaration;
         // For better error recovery.
@@ -4422,9 +4427,20 @@ void Parser::ParseDeclarationSpecifiers(
       isInvalid = DS.SetTypeQual(DeclSpec::TQ_volatile, Loc, PrevSpec, DiagID,
                                  getLangOpts());
       break;
-    case tok::kw_restrict:
+    case tok::kw_restrict: {
+      if (auto const& nt = NextToken(); nt.is(tok::kw_typedef)) {
+        llvm::outs() << "#3 typedef restrict\n";
+        // (void)ConsumeToken();
+        isInvalid = DS.SetStorageClassSpec(Actions, DeclSpec::SCS_restrict_typedef, Loc,
+                                         PrevSpec, DiagID, Policy);
+        isStorageClass = true;
+        break;
+      } else {
+        llvm::outs() << "#2 restrict must be followed by typedef not " << nt.getKind() << "\n";
+      }
       isInvalid = DS.SetTypeQual(DeclSpec::TQ_restrict, Loc, PrevSpec, DiagID,
                                  getLangOpts());
+    }
       break;
 
     // C++ typename-specifier:
@@ -7008,6 +7024,7 @@ void Parser::InitCXXThisScopeForDeclaratorIfRelevant(
   bool IsCXX11MemberFunction =
       getLangOpts().CPlusPlus11 &&
       D.getDeclSpec().getStorageClassSpec() != DeclSpec::SCS_typedef &&
+      D.getDeclSpec().getStorageClassSpec() != DeclSpec::SCS_restrict_typedef &&
       (D.getContext() == DeclaratorContext::Member
            ? !D.getDeclSpec().isFriendSpecified()
            : D.getContext() == DeclaratorContext::File &&

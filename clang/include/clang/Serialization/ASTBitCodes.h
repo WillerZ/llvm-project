@@ -1523,7 +1523,10 @@ enum DeclCode {
   /// An ImplicitConceptSpecializationDecl record.
   DECL_IMPLICIT_CONCEPT_SPECIALIZATION,
 
-  DECL_LAST = DECL_IMPLICIT_CONCEPT_SPECIALIZATION
+  /// A 'restrict typedef' [Cphil]
+  DECL_RESTRICT_TYPEDEF,
+
+  DECL_LAST = DECL_RESTRICT_TYPEDEF
 };
 
 /// Record codes for each kind of statement or expression.

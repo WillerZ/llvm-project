@@ -5231,7 +5231,8 @@ Decl *Sema::ParsedFreeStandingDeclSpec(Scope *S, AccessSpecifier AS,
   // Handle anonymous struct definitions.
   if (RecordDecl *Record = dyn_cast_or_null<RecordDecl>(Tag)) {
     if (!Record->getDeclName() && Record->isCompleteDefinition() &&
-        DS.getStorageClassSpec() != DeclSpec::SCS_typedef) {
+        DS.getStorageClassSpec() != DeclSpec::SCS_typedef &&
+        DS.getStorageClassSpec() != DeclSpec::SCS_restrict_typedef) {
       if (getLangOpts().CPlusPlus ||
           Record->getDeclContext()->isRecord()) {
         // If CurContext is a DeclContext that can contain statements,
@@ -5293,7 +5294,8 @@ Decl *Sema::ParsedFreeStandingDeclSpec(Scope *S, AccessSpecifier AS,
     return TagD;
 
   if (getLangOpts().CPlusPlus &&
-      DS.getStorageClassSpec() != DeclSpec::SCS_typedef)
+      DS.getStorageClassSpec() != DeclSpec::SCS_typedef &&
+      DS.getStorageClassSpec() != DeclSpec::SCS_restrict_typedef)
     if (EnumDecl *Enum = dyn_cast_or_null<EnumDecl>(Tag))
       if (Enum->enumerator_begin() == Enum->enumerator_end() &&
           !Enum->getIdentifier() && !Enum->isInvalidDecl())
@@ -5301,7 +5303,8 @@ Decl *Sema::ParsedFreeStandingDeclSpec(Scope *S, AccessSpecifier AS,
 
   if (!DS.isMissingDeclaratorOk()) {
     // Customize diagnostic for a typedef missing a name.
-    if (DS.getStorageClassSpec() == DeclSpec::SCS_typedef)
+    if ((DS.getStorageClassSpec() == DeclSpec::SCS_typedef) ||
+        (DS.getStorageClassSpec() == DeclSpec::SCS_restrict_typedef))
       Diag(DS.getBeginLoc(), diag::ext_typedef_without_a_name)
           << DS.getSourceRange();
     else
@@ -5354,7 +5357,7 @@ Decl *Sema::ParsedFreeStandingDeclSpec(Scope *S, AccessSpecifier AS,
       // Since mutable is not a viable storage class specifier in C, there is
       // no reason to treat it as an extension. Instead, diagnose as an error.
       Diag(DS.getStorageClassSpecLoc(), diag::err_mutable_nonmember);
-    else if (!DS.isExternInLinkageSpec() && SCS != DeclSpec::SCS_typedef)
+    else if (!DS.isExternInLinkageSpec() && SCS != DeclSpec::SCS_typedef && SCS != DeclSpec::SCS_restrict_typedef)
       Diag(DS.getStorageClassSpecLoc(), DiagID)
         << DeclSpec::getSpecifierName(SCS);
   }
@@ -5554,7 +5557,8 @@ InjectAnonymousStructOrUnionMembers(Sema &SemaRef, Scope *S, DeclContext *Owner,
 static StorageClass
 StorageClassSpecToVarDeclStorageClass(const DeclSpec &DS) {
   DeclSpec::SCS StorageClassSpec = DS.getStorageClassSpec();
-  assert(StorageClassSpec != DeclSpec::SCS_typedef &&
+  assert((StorageClassSpec != DeclSpec::SCS_typedef) &&
+         (StorageClassSpec != DeclSpec::SCS_restrict_typedef) &&
          "Parser allowed 'typedef' as storage class VarDecl.");
   switch (StorageClassSpec) {
   case DeclSpec::SCS_unspecified:    return SC_None;
@@ -5568,6 +5572,7 @@ StorageClassSpecToVarDeclStorageClass(const DeclSpec &DS) {
   case DeclSpec::SCS_private_extern: return SC_PrivateExtern;
     // Illegal SCSs map to None: error reporting is up to the caller.
   case DeclSpec::SCS_mutable:        // Fall through.
+  case DeclSpec::SCS_restrict_typedef: // Fall through.
   case DeclSpec::SCS_typedef:        return SC_None;
   }
   llvm_unreachable("unknown storage class specifier");
@@ -6460,7 +6465,8 @@ NamedDecl *Sema::HandleDeclarator(Scope *S, Declarator &D,
     // If the declaration we're planning to build will be declared with
     // external linkage in the translation unit, create any builtin with
     // the same name.
-    if (D.getDeclSpec().getStorageClassSpec() == DeclSpec::SCS_typedef)
+    if ((D.getDeclSpec().getStorageClassSpec() == DeclSpec::SCS_typedef) ||
+        (D.getDeclSpec().getStorageClassSpec() == DeclSpec::SCS_restrict_typedef))
       /* Do nothing*/;
     else if (CurContext->isFunctionOrMethod() &&
              (D.getDeclSpec().getStorageClassSpec() == DeclSpec::SCS_extern ||
@@ -6527,6 +6533,7 @@ NamedDecl *Sema::HandleDeclarator(Scope *S, Declarator &D,
   // variables, but not to typedefs (C++ [dcl.typedef]p4) or variable templates.
   if (Previous.isSingleTagDecl() &&
       D.getDeclSpec().getStorageClassSpec() != DeclSpec::SCS_typedef &&
+      D.getDeclSpec().getStorageClassSpec() != DeclSpec::SCS_restrict_typedef &&
       (TemplateParamLists.size() == 0 || R->isFunctionType()))
     Previous.clear();
 
@@ -6538,7 +6545,8 @@ NamedDecl *Sema::HandleDeclarator(Scope *S, Declarator &D,
   NamedDecl *New;
 
   bool AddToScope = true;
-  if (D.getDeclSpec().getStorageClassSpec() == DeclSpec::SCS_typedef) {
+  if ((D.getDeclSpec().getStorageClassSpec() == DeclSpec::SCS_typedef) ||
+      (D.getDeclSpec().getStorageClassSpec() == DeclSpec::SCS_restrict_typedef)) {
     if (TemplateParamLists.size()) {
       Diag(D.getIdentifierLoc(), diag::err_template_typedef);
       return nullptr;
@@ -6799,7 +6807,12 @@ Sema::ActOnTypedefDeclarator(Scope* S, Declarator& D, DeclContext* DC,
     return nullptr;
   }
 
-  TypedefDecl *NewTD = ParseTypedefDecl(S, D, TInfo->getType(), TInfo);
+  TypedefNameDecl *NewTD;
+  if (D.getDeclSpec().getStorageClassSpec() == DeclSpec::SCS_restrict_typedef) {
+    NewTD = ParseRestrictTypedefDecl(S, D, TInfo->getType(), TInfo);
+  } else {
+    NewTD = ParseTypedefDecl(S, D, TInfo->getType(), TInfo);
+  }
   if (!NewTD) return nullptr;
 
   // Handle attributes prior to checking for duplicates in MergeVarDecl
@@ -16856,7 +16869,8 @@ void Sema::AddKnownFunctionAttributes(FunctionDecl *FD) {
   }
 }
 
-TypedefDecl *Sema::ParseTypedefDecl(Scope *S, Declarator &D, QualType T,
+template<typename TypedefDeclType>
+TypedefDeclType *Sema::ParseTypedefLikeDecl(Scope *S, Declarator &D, QualType T,
                                     TypeSourceInfo *TInfo) {
   assert(D.getIdentifier() && "Wrong callback for declspec without declarator");
   assert(!T.isNull() && "GetTypeForDeclarator() returned null type");
@@ -16867,8 +16881,8 @@ TypedefDecl *Sema::ParseTypedefDecl(Scope *S, Declarator &D, QualType T,
   }
 
   // Scope manipulation handled by caller.
-  TypedefDecl *NewTD =
-      TypedefDecl::Create(Context, CurContext, D.getBeginLoc(),
+  TypedefDeclType *NewTD =
+      TypedefDeclType::Create(Context, CurContext, D.getBeginLoc(),
                           D.getIdentifierLoc(), D.getIdentifier(), TInfo);
 
   // Bail out immediately if we have an invalid declaration.
@@ -16910,6 +16924,16 @@ TypedefDecl *Sema::ParseTypedefDecl(Scope *S, Declarator &D, QualType T,
   }
 
   return NewTD;
+}
+
+TypedefDecl *Sema::ParseTypedefDecl(Scope *S, Declarator &D, QualType T,
+                                    TypeSourceInfo *TInfo) {
+  return this->template ParseTypedefLikeDecl<TypedefDecl>(S, D, T, TInfo);
+}
+
+RestrictTypedefDecl *Sema::ParseRestrictTypedefDecl(Scope *S, Declarator &D, QualType T,
+                                    TypeSourceInfo *TInfo) {
+  return this->template ParseTypedefLikeDecl<RestrictTypedefDecl>(S, D, T, TInfo);
 }
 
 /// Check that this is a valid underlying type for an enum declaration.

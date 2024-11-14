@@ -450,9 +450,9 @@ void ASTDeclWriter::VisitRestrictTypedefDecl(RestrictTypedefDecl *D) {
       !D->isModulePrivate() &&
       !needsAnonymousDeclarationNumber(D) &&
       D->getDeclName().getNameKind() == DeclarationName::Identifier)
-    AbbrevToUse = Writer.getDeclTypedefAbbrev();
+    AbbrevToUse = Writer.getDeclRestrictTypedefAbbrev();
 
-  Code = serialization::DECL_TYPEDEF;
+  Code = serialization::DECL_RESTRICT_TYPEDEF;
 }
 
 void ASTDeclWriter::VisitTypeAliasDecl(TypeAliasDecl *D) {

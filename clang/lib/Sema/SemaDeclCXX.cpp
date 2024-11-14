@@ -828,7 +828,8 @@ Sema::ActOnDecompositionDeclarator(Scope *S, Declarator &D,
         Warn << SourceRange(Loc, Loc);
     }
     // We can't recover from it being declared as a typedef.
-    if (DS.getStorageClassSpec() == DeclSpec::SCS_typedef)
+    if ((DS.getStorageClassSpec() == DeclSpec::SCS_typedef) ||
+        (DS.getStorageClassSpec() == DeclSpec::SCS_restrict_typedef))
       return nullptr;
   }
 
@@ -3467,7 +3468,7 @@ Sema::ActOnCXXMemberDeclarator(Scope *S, AccessSpecifier AS, Declarator &D,
     unsigned InvalidDecl;
     bool ShowDeclName = true;
     if (!isFunc &&
-        (DS.getStorageClassSpec() == DeclSpec::SCS_typedef || MSPropertyAttr))
+        (DS.getStorageClassSpec() == DeclSpec::SCS_typedef || DS.getStorageClassSpec() == DeclSpec::SCS_restrict_typedef || MSPropertyAttr))
       InvalidDecl = 0;
     else if (!isFunc)
       InvalidDecl = 1;
@@ -3515,6 +3516,7 @@ Sema::ActOnCXXMemberDeclarator(Scope *S, AccessSpecifier AS, Declarator &D,
   switch (DS.getStorageClassSpec()) {
   case DeclSpec::SCS_unspecified:
   case DeclSpec::SCS_typedef:
+  case DeclSpec::SCS_restrict_typedef:
   case DeclSpec::SCS_static:
     break;
   case DeclSpec::SCS_mutable:
@@ -18584,6 +18586,7 @@ DeclResult Sema::ActOnCXXConditionDeclaration(Scope *S, Declarator &D) {
   // The type-specifier-seq shall not contain typedef and shall not declare a
   // new class or enumeration.
   assert(D.getDeclSpec().getStorageClassSpec() != DeclSpec::SCS_typedef &&
+         D.getDeclSpec().getStorageClassSpec() != DeclSpec::SCS_restrict_typedef &&
          "Parser allowed 'typedef' as storage class of condition decl.");
 
   Decl *Dcl = ActOnDeclarator(S, D);

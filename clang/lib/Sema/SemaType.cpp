@@ -1845,7 +1845,8 @@ static QualType ConvertDeclSpecToType(TypeProcessingState &state) {
         // ProcessDeclAttributes() will output an error anyway.
         if (AL.isStandardAttributeSyntax() && AL.isClangScope() &&
             !(AL.getKind() == ParsedAttr::AT_MatrixType &&
-              DS.getStorageClassSpec() != DeclSpec::SCS_typedef)) {
+              DS.getStorageClassSpec() != DeclSpec::SCS_typedef &&
+              DS.getStorageClassSpec() != DeclSpec::SCS_restrict_typedef)) {
           S.Diag(AL.getLoc(), diag::warn_type_attribute_deprecated_on_decl)
               << AL;
         }
@@ -3760,7 +3761,8 @@ static QualType GetDeclSpecTypeForDeclarator(TypeProcessingState &state,
       break;
     }
 
-    if (D.getDeclSpec().getStorageClassSpec() == DeclSpec::SCS_typedef)
+    if (D.getDeclSpec().getStorageClassSpec() == DeclSpec::SCS_typedef ||
+        D.getDeclSpec().getStorageClassSpec() == DeclSpec::SCS_restrict_typedef)
       Error = 11;
 
     // In Objective-C it is an error to use 'auto' on a function declarator
@@ -4157,6 +4159,7 @@ static CallingConv getCCForDeclaratorChunk(
       IsCXXInstanceMethod =
           D.isFirstDeclarationOfMember() &&
           D.getDeclSpec().getStorageClassSpec() != DeclSpec::SCS_typedef &&
+          D.getDeclSpec().getStorageClassSpec() != DeclSpec::SCS_restrict_typedef &&
           !D.isStaticMember();
     }
   }
@@ -4710,6 +4713,7 @@ static TypeSourceInfo *GetFullTypeForDeclarator(TypeProcessingState &state,
   // Does this declaration declare a typedef-name?
   bool IsTypedefName =
       D.getDeclSpec().getStorageClassSpec() == DeclSpec::SCS_typedef ||
+      D.getDeclSpec().getStorageClassSpec() == DeclSpec::SCS_restrict_typedef ||
       D.getContext() == DeclaratorContext::AliasDecl ||
       D.getContext() == DeclaratorContext::AliasTemplate;
 

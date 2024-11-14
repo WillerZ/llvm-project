@@ -3836,6 +3836,9 @@ Decl *ASTReader::ReadDeclRecord(DeclID ID) {
   case DECL_TYPEDEF:
     D = TypedefDecl::CreateDeserialized(Context, ID);
     break;
+  case DECL_RESTRICT_TYPEDEF:
+    D = RestrictTypedefDecl::CreateDeserialized(Context, ID);
+    break;
   case DECL_TYPEALIAS:
     D = TypeAliasDecl::CreateDeserialized(Context, ID);
     break;

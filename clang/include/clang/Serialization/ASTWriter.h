@@ -559,6 +559,7 @@ private:
   unsigned UpdateVisibleAbbrev = 0;
   unsigned DeclRecordAbbrev = 0;
   unsigned DeclTypedefAbbrev = 0;
+  unsigned DeclRestrictTypedefAbbrev = 0;
   unsigned DeclVarAbbrev = 0;
   unsigned DeclFieldAbbrev = 0;
   unsigned DeclEnumAbbrev = 0;
@@ -745,6 +746,7 @@ public:
   unsigned getDeclParmVarAbbrev() const { return DeclParmVarAbbrev; }
   unsigned getDeclRecordAbbrev() const { return DeclRecordAbbrev; }
   unsigned getDeclTypedefAbbrev() const { return DeclTypedefAbbrev; }
+  unsigned getDeclRestrictTypedefAbbrev() const { return DeclRestrictTypedefAbbrev; }
   unsigned getDeclVarAbbrev() const { return DeclVarAbbrev; }
   unsigned getDeclFieldAbbrev() const { return DeclFieldAbbrev; }
   unsigned getDeclEnumAbbrev() const { return DeclEnumAbbrev; }
