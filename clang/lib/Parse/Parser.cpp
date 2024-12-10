@@ -979,10 +979,8 @@ Parser::ParseExternalDeclaration(ParsedAttributes &Attrs,
     if (Tok.getKind() == tok::kw_restrict) {
       auto const& nt = NextToken();
       if (!nt.is(tok::kw_typedef)) { 
-        llvm::outs() << "#1 restrict must be followed by typedef not " << nt.getKind() << "\n";
         goto dont_know;
       }
-      llvm::outs() << "#4 typedef restrict\n";
     }
     [[fallthrough]];
   case tok::kw_using:

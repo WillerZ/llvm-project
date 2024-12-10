@@ -4429,14 +4429,11 @@ void Parser::ParseDeclarationSpecifiers(
       break;
     case tok::kw_restrict: {
       if (auto const& nt = NextToken(); nt.is(tok::kw_typedef)) {
-        llvm::outs() << "#3 typedef restrict\n";
         // (void)ConsumeToken();
         isInvalid = DS.SetStorageClassSpec(Actions, DeclSpec::SCS_restrict_typedef, Loc,
                                          PrevSpec, DiagID, Policy);
         isStorageClass = true;
         break;
-      } else {
-        llvm::outs() << "#2 restrict must be followed by typedef not " << nt.getKind() << "\n";
       }
       isInvalid = DS.SetTypeQual(DeclSpec::TQ_restrict, Loc, PrevSpec, DiagID,
                                  getLangOpts());
